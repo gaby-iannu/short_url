@@ -1,0 +1,81 @@
+colima start
+docker start mysql
+docker ps
+docker exec -it mysql bash -l (entra como root)
+mysql -uroot -p -A => root
+
+########
+# SQL
+#######
+
+create table animales(
+ 	id bigint auto_increment,
+	name varchar(2) not null,
+    	status varchar(20) not null,
+    	primary key(id)
+ );
+
+ alter table animales modify name varchar(20);
+
+ insert into animales (name, status) values ('Pappo', 'cuidando');
+ insert into animales (name, status) values ('Tano', 'durmiendo');
+ insert into animales (name, status) values ('cabezon', 'peleando');
+ insert into animales (name, status) values ('flaca', 'peleando');
+ insert into animales (name, status) values ('donato', 'mordiendo');
+
+ alter table animales add column type varchar(20);
+ update animales set type = 'perro' where id in (1, 6, 7, 8, 9);
+ commit;
+
+# Copiar csv local to local container
+docker cp 15d4b467-9665-4bd5-8f9c-5cab0057ac67.csv mysql:/data
+
+create table shipments(
+	SUBSTATUS varchar(30), 
+	PICKING varchar(30), 
+	STATUS varchar(30), 
+	SUBSTATUS varchar(30),
+	DATE_DELIVERED DATETIME, 
+	DATE_CANCELLED DATETIME, 
+	DATE_CREATED DATETIME, 
+	DATE_FIRST_PRINTED DATETIME,
+	DATE_FIRST_VISIT DATETIME, 
+	DATE_HANDLING DATETIME, 
+	DATE_NOT_DELIVERED DATETIME, 
+	DATE_READY_TO_SHIP DATETIME,
+	DATE_SHIPPED DATETIME, 
+	HP_TYPE varchar(30), 
+	ROUTE_ID bigint, 
+	AUD_INS_DTTM DATETIME, 
+	ORDER_ID varchar(30),
+	METHOD_ID bigint, 
+	SERVICE_ID bigint, 
+	ITEM_ID bigint
+)
+
+
+LOAD DATA INFILE 'data/15d4b467-9665-4bd5-8f9c-5cab0057ac67.csv' 
+INTO TABLE discounts 
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+create table PHONES (
+	PHONE_ID bigint auto_increment,
+	PHONE varchar(50),
+	primary key(PHONE_ID)
+);
+
+-- Move file to mysql security folder
+mv phones.csv /var/lib/mysql-files/
+
+-- Load data from csv
+mysql -uroot -p -A hola_mundo < load_phones.sql
+
+### Ejecuta mysql en localhost, abre el port 3306, detach (-d) la consola, y nombra el container con mysql-phones
+docker run -d --rm -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root --name mysql-phones mysql
+
+### stop container mysql 
+docker stop mysql-phones
+

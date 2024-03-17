@@ -1,0 +1,18 @@
+run redis image:
+docker run -d --name redis-shorturl -p 6379:6379 -p 8001:8001 redis
+
+connect with client:
+docker exec -it redis-shorturl bash
+
+into redis host:
+redis-cli
+	set una-clave "un valor"
+	get una-clave
+	exit
+exit
+
+stop redis:
+docker stop redis-shorturl
+
+remove container:
+docker container rm 911e398f3e29ac650e71bfae09455a461bbb6ea80038e79fc71a53b76717cf17

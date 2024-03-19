@@ -25,6 +25,6 @@ func main() {
 
 	_, err= short.Get("no existe")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("Error:%v\n",err)
 	}
 }

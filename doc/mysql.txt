@@ -79,3 +79,6 @@ docker run -d --rm -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root --name mysql-phones 
 ### stop container mysql 
 docker stop mysql-phones
 
+connect from local to mysql in container
+mysql -h 127.0.0.1 -P 3306 -uroot -proot
+

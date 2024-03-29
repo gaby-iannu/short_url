@@ -18,33 +18,43 @@ type Repository interface {
 	Read(tinyUrl string) model.Url
 }
 
-type repository struct {}
+type DataSource struct {
+	Username string
+	Password string
+	Hostname string
+	DBName string
+	MaxOpenConns int
+	MaxIdleConns int
+	ConnMaxLifetime time.Duration
 
-func New() Repository {
-	return &repository{}
+}
+
+type repository struct {
+	datasource DataSource
+}
+
+func New(datasource DataSource) Repository {
+	return &repository{
+		datasource: datasource,
+	}
 }
 
 // Connect to mysql, return db connection
-func connectToMysql() *sql.DB {
-	username:="root"
-	password:="root"
-	hostname:="127.0.0.1:3306"
-	dbName:="shorturl"
-	maxOpenConns:=20
-	maxIdleConns:=20
-	connMaxLifetime:= time.Minute * 3
+func connectToMysql(datasource DataSource) *sql.DB {
 
-	datasource :=fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, hostname, dbName)
-	db, err:=sql.Open("mysql", datasource)
+	source :=fmt.Sprintf("%s:%s@tcp(%s)/%s", datasource.Username, datasource.Password, datasource.Hostname, datasource.DBName)
+	db, err:=sql.Open("mysql", source)
 	if err != nil {
 		panic(err)
 	}
 	
-	db.SetMaxOpenConns(maxOpenConns)
-	db.SetMaxIdleConns(maxIdleConns)
-	db.SetConnMaxLifetime(connMaxLifetime)
+	db.SetMaxOpenConns(datasource.MaxOpenConns)
+	db.SetMaxIdleConns(datasource.MaxIdleConns)
+	db.SetConnMaxLifetime(datasource.ConnMaxLifetime)
 	return db
 }
+
+var toConnect = connectToMysql
 
 const (
 	query = "select LONG_URL from URL where TINY_URL = ?"
@@ -55,7 +65,7 @@ const (
 // true si lo inserta 
 // false si ya existe y no lo inserta
 func (r *repository) InsertIfNotExists(tiny string, url model.Url) bool {
-	db := connectToMysql()
+	db := toConnect(r.datasource)
 	defer db.Close()
 
 	rows, err := db.Query(query, tiny)
@@ -67,12 +77,15 @@ func (r *repository) InsertIfNotExists(tiny string, url model.Url) bool {
 	
 	if rows.Next() {
 		var longUrl string
-		err := rows.Scan(&longUrl)
+		err = rows.Scan(&longUrl)
 		if err != nil {
 			panic(err)
 		}
-
 		return false 
+	}
+
+	if rows.Err() != nil {
+		panic(rows.Err())
 	}
 	
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -98,7 +111,7 @@ func (r *repository) InsertIfNotExists(tiny string, url model.Url) bool {
 // Return url struct with long url
 // and user
 func (r *repository) Read(tinyUrl string) model.Url {
-	db := connectToMysql()
+	db := toConnect(r.datasource)
 	defer db.Close()
 
 	rows, err := db.Query(query_all, tinyUrl)

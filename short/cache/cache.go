@@ -8,7 +8,11 @@ import (
 
 
 type Cache interface {
+	// Put string value with string key
+	// return error if fail put in cache 
 	Put(string, string) error 
+	// Get value with key, return error if 
+	// value dosen't exist into cache
 	Get(string) (string, error)
 }
 

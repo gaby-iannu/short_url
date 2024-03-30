@@ -167,6 +167,54 @@ func TestInsertIfNotExists_RowsAffectedOne(t *testing.T) {
 	configToConnect(mockDB)
 	assert.Equal(t, true, repo.InsertIfNotExists(tiny, model.Url{Long:long, User:user_id}))
 }
+
+func TestRead_PanicQuery(t *testing.T) {
+	repo, mockDB, mock := initRepoDbMock(t)
+	defer mockDB.Close()
+
+	tiny := "abc"
+	err := fmt.Errorf("select err")
+
+	mock.ExpectQuery(query_all).
+	WithArgs(tiny).
+	WillReturnError(err)
+
+	configToConnect(mockDB)
+	assert.PanicsWithError(t, err.Error(), func(){ repo.Read(tiny) })
+}
+
+func TestRead_EmptyResult(t *testing.T) {
+	repo, mockDB, mock := initRepoDbMock(t)
+	defer mockDB.Close()
+
+	tiny := "abc"
+	rows := sqlmock.NewRows([]string{})
+	
+	mock.ExpectQuery(query_all).
+	WithArgs(tiny).
+	WillReturnRows(rows)
+
+	configToConnect(mockDB)
+	assert.Empty(t, repo.Read(tiny))
+}
+
+func TestRead_Result(t *testing.T) {
+	repo, mockDB, mock := initRepoDbMock(t)
+	defer mockDB.Close()
+
+	tiny := "abc"
+	rows := sqlmock.
+	NewRows([]string{"LONG_URL", "TINY_URL"}).
+	AddRow("facebook.com","user_id")
+	
+	mock.ExpectQuery(query_all).
+	WithArgs(tiny).
+	WillReturnRows(rows)
+
+	configToConnect(mockDB)
+	assert.Equal(t, model.Url{Long:"facebook.com", User:"user_id"}, repo.Read(tiny))
+}
+
 func configToConnect(db *sql.DB) {
 	toConnect = func(datasource DataSource) *sql.DB {
 		return db

@@ -1,8 +1,8 @@
 package model
 
 type Url struct {
-	Long string
-	User string
+	Long string `json:"long_url"` 
+	User string `json:"user_id"`
 }
 
 

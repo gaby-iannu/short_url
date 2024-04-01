@@ -252,14 +252,9 @@ func TestTiny(t *testing.T) {
 	for _,c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			s := buildShort(c.insertIfNotExistsFunc, c.readFunc, c.putFunc, c.getFunc)
-			varToMd5 = func(model.Url) []byte {
-				b1 := []byte(c.expected)
-				// b,_ := hex.DecodeString(c.expected)
-				// if b1 != b {
-				// 	return b1
-				// }
-				return b1 
-			}	
+			encodeToString = func([]byte) string {
+				return c.expected
+			}
 			assert.Equal(t, c.expected, s.Tiny(c.url))
 		})
 	}

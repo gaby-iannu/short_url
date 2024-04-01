@@ -20,9 +20,6 @@ type cache struct {
 	client *redis.Client
 }
 
-type error interface {
-	Error() string
-}
 
 type NotExistError struct {
 

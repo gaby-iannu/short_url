@@ -7,5 +7,6 @@ import (
 
 
 func main() {
-	handler.InitializeAndRun(builder.Build())
+	router := handler.InitializeAndRun(builder.Build())
+	router.Run("localhost:8080")
 }

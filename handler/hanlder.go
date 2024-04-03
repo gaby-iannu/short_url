@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"short_url/short"
 	"short_url/short/cache"
@@ -15,12 +14,12 @@ import (
 var s short.Short 
 
 // InitializeAndRun Short services and run rest controller
-func InitializeAndRun(repository repository.Repository, cache cache.Cache) {
+func InitializeAndRun(repository repository.Repository, cache cache.Cache) *gin.Engine{
 	s = short.New(cache, repository)
 	router := gin.Default()
 	router.POST("/tiny", createTinyUrl)
 	router.GET("/long/:tiny", getUrl)
-	router.Run("localhost:8080")
+	return router
 }
 
 func createTinyUrl(c *gin.Context) {
@@ -28,18 +27,17 @@ func createTinyUrl(c *gin.Context) {
 
 	err := c.BindJSON(&url)
 	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err})
+		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Errorf("user and long url are required").Error()})
 		return
 	}
 
-	if len(url.Long) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Errorf("Url too short!")})
+	if len(url.Long) <= 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Errorf("Url too short!").Error()})
 		return
 	}
 
-	if len(url.User) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Errorf("User is empty")})
+	if len(url.User) <= 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Errorf("User is empty").Error()})
 		return
 	}
 

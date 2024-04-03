@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"short_url/short"
@@ -89,6 +90,70 @@ func TestCreateTinyUrl(t *testing.T) {
 				return "", nil
 			},
 		},
+	}
+
+	for _,c := range cases {
+		t.Run(c.name, func(t *testing.T){
+			c.request.Header.Add("Content-Type", "application/json")
+			router := InitializeAndRun(nil, nil)	
+			s = initMockShort(c.tinyFunc, c.getFunc)
+			router.ServeHTTP(c.response, c.request)
+			assert.Equal(t, c.httpStatusCodeExpected, c.response.Code)
+			assert.Equal(t, c.msgStringExpected, c.response.Body.String())
+		})
+	}
+}
+
+func TestGetUrl(t *testing.T) {
+	cases := []struct{
+		name string
+		request *http.Request
+		response *httptest.ResponseRecorder
+		httpStatusCodeExpected int
+		msgStringExpected string
+		tinyFunc func(url model.Url) string
+		getFunc func(tiny string) (string, error)
+	}{
+		{
+			name: "Test param tiny is empty then return error",
+			request: httptest.NewRequest("GET", "/long/a", nil),
+			response: httptest.NewRecorder(),
+			httpStatusCodeExpected: http.StatusBadRequest,
+			msgStringExpected: "{\"msg\":\"Tiny url is too short!\"}",
+			tinyFunc: func(url model.Url) string {
+				return ""
+			},
+			getFunc: func(tiny string) (string, error) {
+				return "", nil
+			},
+		},
+		{
+			name: "Test get func fail then return error",
+			request: httptest.NewRequest("GET", "/long/abcd", nil),
+			response: httptest.NewRecorder(),
+			httpStatusCodeExpected: http.StatusBadRequest,
+			msgStringExpected: "{\"msg\":\"get fail\"}",
+			tinyFunc: func(url model.Url) string {
+				return ""
+			},
+			getFunc: func(tiny string) (string, error) {
+				return "", fmt.Errorf("get fail")
+			},
+		},
+		{
+			name: "Test GET is ok then return long url",
+			request: httptest.NewRequest("GET", "/long/abcd", nil),
+			response: httptest.NewRecorder(),
+			httpStatusCodeExpected: http.StatusAccepted,
+			msgStringExpected: "{\"long_url\":\"abcdefgh.com/long\"}",
+			tinyFunc: func(url model.Url) string {
+				return ""
+			},
+			getFunc: func(tiny string) (string, error) {
+				return "abcdefgh.com/long", nil
+			},
+		},
+
 	}
 
 	for _,c := range cases {

@@ -48,14 +48,14 @@ func createTinyUrl(c *gin.Context) {
 
 func getUrl(c *gin.Context) {
   	tiny := c.Param("tiny")
-	if len(tiny) == 0 {		
-		c.JSON(http.StatusBadRequest, gin.H{"msg":fmt.Errorf("Tiny url too short!")})
+	if len(tiny) <= 1 {		
+		c.JSON(http.StatusBadRequest, gin.H{"msg":fmt.Errorf("Tiny url is too short!").Error()})
 		return
 	}
 
 	longUrl, err := s.Get(tiny)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"msg": err})
+		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
 

@@ -2,8 +2,10 @@ package short
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
 	"short_url/short/cache"
 	"short_url/short/model"
 	"short_url/short/repository"
@@ -52,17 +54,17 @@ func toMd5(url model.Url) []byte {
 	return md5.Sum(nil)
 }
 
-var varToMd5 func(model.Url) []byte = toMd5
+var encodeToString func([]byte) string = hex.EncodeToString
 
 // Reduce a long url and insert into DB
 func (s *short) Tiny(url model.Url) string {
-	return s.reduce(string(varToMd5(url)), url)
+	return s.reduce(encodeToString(toMd5(url)), url)
 }
 
 
 
 func (s *short) reduce(tiny string, url model.Url) string {
-	
+	log.Println(tiny)	
 	if len(tiny) == 7 && s.repository.InsertIfNotExists(tiny, url) {
 		return tiny
 	}

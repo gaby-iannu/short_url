@@ -17,8 +17,8 @@ COPY /builder/builder.go /short_url/builder/
 COPY /handler/handler.go /short_url/handler/
 
 WORKDIR /short_url
-RUN cd short_url
-RUN go build -ldflags="-extldflags=-static" -o shorturl ./short_url/main.go
+RUN cd /short_url
+RUN go build -ldflags="-extldflags=-static" -o shorturl /short_url/main.go
 
 FROM alpine:latest
 COPY --from=builder /short_url/shorturl .

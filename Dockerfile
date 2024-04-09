@@ -10,6 +10,7 @@ RUN mkdir /short_url/handler
 COPY go.mod /short_url/
 COPY go.sum /short_url/
 COPY main.go /short_url/
+COPY /short/short.go /short_url/short/
 COPY /short/cache/cache.go /short_url/short/cache/
 COPY /short/model/model.go /short_url/short/model/
 COPY /short/repository/repository.go /short_url/short/repository/
@@ -22,4 +23,6 @@ RUN go build -ldflags="-extldflags=-static" -o shorturl /short_url/main.go
 
 FROM alpine:latest
 COPY --from=builder /short_url/shorturl .
+
+EXPOSE 8080:8080
 ENTRYPOINT ["/shorturl"]

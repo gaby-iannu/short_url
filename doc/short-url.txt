@@ -1,0 +1,12 @@
+build image:
+docker build --rm --tag shorturl:1.1 .
+
+run container:
+docker run -d --rm --net shorturl -p 8080:8080 --name shorturl shorturl:1.1
+
+terminal to container:
+docker exec -it shorturl sh
+
+create net:
+docker network create shorturl
+

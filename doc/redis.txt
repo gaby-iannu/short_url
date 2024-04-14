@@ -1,4 +1,7 @@
-run redis image:
+run redis image conectandose a una red:
+docker run -d --name redis-shorturl --net shorturl -p 6379:6379 -p 8001:8001 redis
+
+run redis image local
 docker run -d --name redis-shorturl -p 6379:6379 -p 8001:8001 redis
 
 connect with client:

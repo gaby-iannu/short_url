@@ -2,7 +2,7 @@ build image:
 docker build --rm --tag shorturl:1.1 .
 
 run container:
-docker run -d --rm --net shorturl -p 8080:8080 --name shorturl shorturl:1.1
+docker run -d --rm --net shorturl -p 8080:8080 -e SCOPE="prod" -e SHORT_HOST="0.0.0.0"  -e BD_HOST="mysql-shorturl" -e CACHE_HOST="redis-shorturl" --name shorturl shorturl:1.1
 
 terminal to container:
 docker exec -it shorturl sh
@@ -10,3 +10,6 @@ docker exec -it shorturl sh
 create net:
 docker network create shorturl
 
+Covertura test:
+go test ./... -coverprofile=coverage.out
+go tool cover -func=coverage.out

@@ -8,13 +8,28 @@ import (
 
 
 func TestBuild(t *testing.T) {
-	repository, cache := Build()
+	repository, cache, err  := Build("mysqlHost","redisHost")
 	assert.NotNil(t, repository)
 	assert.NotNil(t, cache)
+	assert.Nil(t, err)
+}
+
+func TestBuild_WhenMysqlHost_IsNull_ThenReturnError(t *testing.T) {
+	repository, cache, err := Build("","")
+	assert.Nil(t, repository)
+	assert.Nil(t, cache)
+	assert.EqualError(t, err, "mysql host is empty")
+}
+
+func TestBuild_WhenRedisHost_IsNull_ThenReturnError(t *testing.T) {
+	repository, cache, err := Build("mysqlHost","")
+	assert.Nil(t, repository)
+	assert.Nil(t, cache)
+	assert.EqualError(t, err, "redis host is empty")
 }
 
 func TestBuildeDataSource(t *testing.T) {
-	datasource := buildDataSource()
+	datasource := buildDataSource("mysqlHost")
 	assert.NotNil(t, datasource)
 	assert.NotEmpty(t, datasource.ConnMaxLifetime)
 	assert.NotEmpty(t, datasource.DBName)

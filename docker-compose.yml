@@ -27,8 +27,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS}
       - MYSQL_DATABASE=${DB_NAME}
-    #volumes:
-      #- ./script/init:/docker-entrypoint-initdb.d
+    volumes:
+      - ./script/init:/docker-entrypoint-initdb.d
 
   redis-shorturl:
     container_name: redis-shorturl

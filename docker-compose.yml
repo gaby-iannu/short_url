@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  shorturl:
+    env_file:
+      - .env
+    build: .
+    container_name: shorturl
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql-shorturl
+      - redis-shorturl
+    environment:
+      - SCOPE=${SCOPE}
+      - SHORT_HOST=${HOST}
+      - BD_HOST=${DB_HOST}
+      - CACHE_HOST=${REDIS_HOST}
+
+  mysql-shorturl:
+    env_file:
+      - .env
+    container_name: mysql-shorturl
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS}
+      - MYSQL_DATABASE=${DB_NAME}
+    #volumes:
+      #- ./script/init:/docker-entrypoint-initdb.d
+
+  redis-shorturl:
+    container_name: redis-shorturl
+    image: redis:latest
+    ports:
+      - 6379:6379
+      - 8001:8001
+
+# Use preexisting network
+networks:
+  default:
+    name: shorturl
+    external: true

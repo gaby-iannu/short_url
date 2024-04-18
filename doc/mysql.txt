@@ -74,10 +74,10 @@ mv phones.csv /var/lib/mysql-files/
 mysql -uroot -p -A hola_mundo < load_phones.sql
 
 ### Ejecuta mysql y conecta a la red shorturl 
-docker run -d --rm --net shorturl -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root --name mysql-shorturl mysql
+docker run -d --rm --net shorturl -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=shorturl --name mysql-shorturl mysql
 
 ### Ejecuta mysql en localhost
-docker run -d --rm -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root --name mysql-shorturl mysql
+docker run -d --rm -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=shorturl --name mysql-shorturl mysql
 
 ### stop container mysql 
 docker stop mysql-phones

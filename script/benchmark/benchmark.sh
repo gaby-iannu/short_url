@@ -9,7 +9,7 @@ do
 
 	i=$(($i+1))
 
-	if [ $((i % 100)) -eq 0 ]; then
+	if [ $((i % 30)) -eq 0 ]; then
 		sleep 1
 	fi
 

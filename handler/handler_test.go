@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -92,16 +93,18 @@ func TestCreateTinyUrl(t *testing.T) {
 		},
 	}
 
+	router := InitializeAndRun(nil, nil)	
 	for _,c := range cases {
 		t.Run(c.name, func(t *testing.T){
 			c.request.Header.Add("Content-Type", "application/json")
-			router := InitializeAndRun(nil, nil)	
 			s = initMockShort(c.tinyFunc, c.getFunc)
 			router.ServeHTTP(c.response, c.request)
 			assert.Equal(t, c.httpStatusCodeExpected, c.response.Code)
 			assert.Equal(t, c.msgStringExpected, c.response.Body.String())
 		})
 	}
+
+	prometheus.Unregister(shorturlStatus)
 }
 
 func TestGetUrl(t *testing.T) {
@@ -156,16 +159,18 @@ func TestGetUrl(t *testing.T) {
 
 	}
 
+	router := InitializeAndRun(nil, nil)	
 	for _,c := range cases {
 		t.Run(c.name, func(t *testing.T){
 			c.request.Header.Add("Content-Type", "application/json")
-			router := InitializeAndRun(nil, nil)	
 			s = initMockShort(c.tinyFunc, c.getFunc)
 			router.ServeHTTP(c.response, c.request)
 			assert.Equal(t, c.httpStatusCodeExpected, c.response.Code)
 			assert.Equal(t, c.msgStringExpected, c.response.Body.String())
 		})
 	}
+
+	prometheus.Unregister(shorturlStatus)
 }
 
 func initMockShort(tinyFunc func(url model.Url) string, getFunc func(tiny string) (string, error)) short.Short{

@@ -15,5 +15,6 @@
 *.log
 
 short_url/.DS_Store
+*.bck
 # Dependency directories (remove the comment below to include it)
 # vendor/

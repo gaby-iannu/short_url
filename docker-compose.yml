@@ -1,5 +1,9 @@
 version: "3.8"
 
+volumes:
+  prometheus-data:
+    external: true
+
 services:
   shorturl:
     env_file:
@@ -11,6 +15,8 @@ services:
     depends_on:
       - mysql-shorturl
       - redis-shorturl
+      - prometheus
+      - grafana
     environment:
       - SCOPE=${SCOPE}
       - SHORT_HOST=${HOST}
@@ -28,6 +34,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS}
       - MYSQL_DATABASE=${DB_NAME}
     volumes:
+      # Load scrip into ./script/init/1.sql 
       - ./script/init:/docker-entrypoint-initdb.d
 
   redis-shorturl:
@@ -36,6 +43,30 @@ services:
     ports:
       - 6379:6379
       - 8001:8001
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    volumes:
+      # Bind mounts: when you use bind mounts, a file or directory on the host machine is mounted into a container
+      - ./prometheus/:/etc/prometheus/
+      # Use an external volume defined previusly
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml' # Specify which configuration file to load
+      - '--storage.tsdb.path=/prometheus' # Where prometheus writes its DB
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries' # Path to the console library directory
+      - '--web.console.templates=/usr/share/prometheus/consoles' # Path to the console template directory, available at /consoles.
+    ports:
+      - 9090:9090
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
 
 # Use preexisting network
 networks:

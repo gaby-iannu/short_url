@@ -173,6 +173,38 @@ func TestGetUrl(t *testing.T) {
 	prometheus.Unregister(shorturlStatus)
 }
 
+func TestMetric(t *testing.T) {
+	cases := []struct {
+		name string
+		status int
+		expectedLastMetric string
+	}{
+		{
+			name: "test 201",
+			status: http.StatusCreated,
+			expectedLastMetric: "count_201",
+		},
+		{
+			name: "test 200",
+			status: http.StatusAccepted,
+			expectedLastMetric: "count_202",
+		},
+		{
+			name: "test 400",
+			status: http.StatusBadRequest,
+			expectedLastMetric: "count_400",
+		},
+	}
+
+	for _,c := range cases {
+		t.Run(c.name, func(t *testing.T){
+			m = &metric{}
+			m.buildCountMetric(c.status)
+			assert.Equal(t, c.expectedLastMetric, m.lastMetric)
+		})
+	}
+}
+
 func initMockShort(tinyFunc func(url model.Url) string, getFunc func(tiny string) (string, error)) short.Short{
 	return &mockShort{
 		tinyFunc: tinyFunc,

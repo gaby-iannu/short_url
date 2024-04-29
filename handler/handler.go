@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"short_url/short"
 	"short_url/short/cache"
@@ -26,13 +25,15 @@ func InitializeAndRun(repository repository.Repository, cache cache.Cache) *gin.
 
 	shorturlStatus = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "url_count",
+			Name: "shorturl_count_status",
 			// Subsystem: "short",
 			Help: "Count of status returned to user",
 		}, 
-		[]string{"url","status"},
+		[]string{"count_by_status"},
 	)
 	prometheus.MustRegister(shorturlStatus)
+	
+	m = &metric{}
 
 	router := gin.Default()
 	router.GET("/metrics", prometheusHandler)
@@ -42,59 +43,68 @@ func InitializeAndRun(repository repository.Repository, cache cache.Cache) *gin.
 }
 
 func prometheusHandler(c *gin.Context) {
-	log.Printf("prometheus\n")
 	 promhttp.Handler().ServeHTTP(c.Writer, c.Request)
+}
+
+var count_metric = "count_"
+var m *metric
+
+type metric struct {
+	lastMetric string
+}
+
+func (m *metric) buildCountMetric(status int) {
+	stSatus := strconv.Itoa(status)
+	m.lastMetric = fmt.Sprintf("%s%s", count_metric, stSatus)
 }
 
 func createTinyUrl(c *gin.Context) {
 	var url model.Url
-	var status string
-	var urlStr string = "empty"
 
-	defer func() {
-		log.Printf("inc - url:%s, status:%s\n", urlStr, status)
-		shorturlStatus.WithLabelValues(urlStr, status).Inc()
+	defer func(){
+		shorturlStatus.WithLabelValues(m.lastMetric).Inc()
 	}()
 
 	err := c.BindJSON(&url)
 	if err != nil {
-		status = strconv.Itoa(http.StatusBadRequest)
+		m.buildCountMetric(http.StatusBadRequest)
 		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Errorf("user and long url are required").Error()})
 		return
 	}
 
 	if len(url.Long) <= 1 {
-		urlStr = url.Long
-		status = strconv.Itoa(http.StatusBadRequest)
+		m.buildCountMetric(http.StatusBadRequest)
 		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Errorf("Url too short!").Error()})
 		return
 	}
 
 	if len(url.User) <= 1 {
-		urlStr = url.Long
-		status = strconv.Itoa(http.StatusBadRequest)
+		m.buildCountMetric(http.StatusBadRequest)
 		c.JSON(http.StatusBadRequest, gin.H{"msg": fmt.Errorf("User is empty").Error()})
 		return
 	}
 
 	tiny := s.Tiny(url)
-	urlStr = url.Long
-	status = strconv.Itoa(http.StatusCreated)
+	m.buildCountMetric(http.StatusCreated)
 	c.JSON(http.StatusCreated, gin.H{"tiny_url": tiny})
 }
 
 func getUrl(c *gin.Context) {
   	tiny := c.Param("tiny")
 	if len(tiny) <= 1 {		
+		m.buildCountMetric(http.StatusBadRequest)
 		c.JSON(http.StatusBadRequest, gin.H{"msg":fmt.Errorf("Tiny url is too short!").Error()})
 		return
 	}
 
 	longUrl, err := s.Get(tiny)
 	if err != nil {
+		m.buildCountMetric(http.StatusBadRequest)
 		c.JSON(http.StatusBadRequest, gin.H{"msg": err.Error()})
 		return
 	}
 
+	m.buildCountMetric(http.StatusAccepted)
 	c.JSON(http.StatusAccepted, gin.H{"long_url":longUrl})
 }
+

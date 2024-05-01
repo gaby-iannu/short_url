@@ -328,7 +328,7 @@ func TestGet(t *testing.T) {
 			},
 			tiny: "abc",
 			expectedValue: "",
-			expectedError: fmt.Errorf("url dosen't exit"),
+			expectedError: fmt.Errorf("url doesn't exit"),
 		},
 		{
 			name: "Test cache return NotExistsError, repository return Url then return long url and nil",

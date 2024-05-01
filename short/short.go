@@ -37,7 +37,7 @@ func (s *short) Get(tinyUrl string) (string,error) {
 	if  _, ok := err.(*cache.NotExistError); ok {
 		url:=s.repository.Read(tinyUrl)
 		if url == (model.Url{}) {
-			return "", fmt.Errorf("url dosen't exit")
+			return "", fmt.Errorf("url doesn't exit")
 		}
 		s.cache.Put(tinyUrl, url.Long)
 		return url.Long, nil
